@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Generador Rankings TrivialCV</title>
+    <link rel="stylesheet" type="text/css" href="https://netdna.bootstrapcdn.com/bootstrap/2.3.2/css/bootstrap.min.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="hero-unit">
+        <h1>Generador de rankings TrivialCV</h1>
+      </div>
+      <div class="row">
+        <div class="span3 bs-docs-sidebar">
+          <ul class="nav nav-list bs-docs-sidenav">
+            <li><a href="#createSec">1. Actualiza Rankings <span class="icon-chevron-right"></span></a></li>
+            <li><a href="#generateSec">2. Genera código HTML <span class="icon-chevron-right"></span></a></li>
+            <li><a href="#configureSec">3. Configura bloque HTML<span class="icon-chevron-right"></span></a></li>
+          </ul>
+        </div>
+        <div class="span9">
+          <section id="createSec">
+            <div class="page-header">
+              <h2>Actualización de Rankings</h2>
+            </div>
+            <p>Actualiza el ranking de actividades SCORM pulsando el botón "Actualiza". </p>
+            <form>
+              <button id="update" type="button" class="btn btn-large btn-success">Actualiza</button>
+            </form>
+          </section>
+          <section id="generateSec">
+            <div class="page-header">
+              <h2>Generación del código HTML</h2>
+            </div>
+            <p>Selecciona en el desplegable la actividad SCORM para la que quieres generar un ranking y pulsa el botón "Genera".</p>
+            <form>
+              <label for="scormSelector">Actividades SCORM Disponibles:</label>
+              <select id="scormSelector"></select>
+              <button id="generate" type="button" class="btn btn-large btn-success">Genera</button>
+            </form>
+          </section>
+          <section id="configureSec">
+            <div class="page-header">
+              <h2>Creación y configuración del Bloque HTML</h2>
+            </div>
+            <p>Copia el contenido del siguiente campo de texto y sigue los pasos que se describen a continuación.</p>
+            <label>Contenido a copiar en un bloque HTML de Moodle:</label>
+            <textarea id="output" cols="40" rows="5"></textarea>
+            <p>Para que los alumnos puedan ver el ranking, es ncesario crear un bloque HTML que se mostrará en la página principal del curso. Para ello, 
+            pulsa en la opción "Agregar ... HTML" (resaltada con borde rojo.</p>
+            <p><img src="trivialcv_scorm_01.png" /></p>
+            <p>Una vez añadido, pulsa el botón de edición del nuevo bloque (resaltado en borde rojo).</p>
+            <p><img src="trivialcv_scorm_02.png" /></p>
+            <p>Proporciona un título para el bloque, y pulsa el botón identificado por los caracteres menor y mayor "<>" (resaltado en rojo). Sustituye el contenido del campo de texto por el código HTML generado en este paso. Finalmente pulsa el botón "Guardar Cambios"</p>
+            <p><img src="trivialcv_scorm_03.png" /></p>
+          </section>      
+       </div>
+    </div>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"><!-- --></script>
+    <script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"><!-- --></script>
+    <script type="text/javascript" src="trivialcv.js"><!-- --></script>
+    <script type="text/javascript">
+      // http://stackoverflow.com/questions/1801499/how-to-change-options-of-select-with-jquery/16654226#16654226
+      (function($, window) {
+        $.fn.replaceOptions = function(options) {
+          var self, $option;
+
+          this.empty();
+          self = this;
+
+          $.each(options, function(index, option) {
+            $option = $("<option></option>")
+              .attr("value", option.value)
+              .text(option.text);
+            self.append($option);
+          });
+        };
+      })(jQuery, window);
+      $.noConflict();
+
+      jQuery(document).ready(function (){
+        // Load TrivialCV module
+        es.ucm.fdi.trivialcv.loadModule(jQuery, es.ucm.fdi.trivialcv, window)
+        .done( function (module) {
+          if (module !== false) {
+            module.getScos()
+              .done(function (data){
+                var options = [];
+                jQuery.each(data, function(index, value) {
+                  options.push({text:value.name, value:value.id})
+                });
+
+                var select = jQuery('#scormSelector');
+                select.replaceOptions(options);
+              });
+          } else {
+            jQuery('#generate').prop('disabled', true);
+            jQuery('#update').prop('disabled', true);
+          }
+        });
+      })
+      
+      jQuery('#generate').click(function () {
+        var textarea = jQuery('#output');
+        var selectorId = jQuery('#scormSelector').val();
+        var code = es.ucm.fdi.trivialcv.generateListRankCode(selectorId);
+        textarea.text(code);
+        textarea.select();
+      });
+      
+      jQuery('#update').click(function () {
+        es.ucm.fdi.trivialcv.storeRanks();
+      });
+      
+    </script>
+  </body>
+</html>
